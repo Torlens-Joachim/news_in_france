@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import Providers from "./Providers";
 
 export const metadata: Metadata = {
-  title: "Trouves-tout",
-  description: "Un site comme Leboncoin où l'utilisateur a la capacité de créer, lire, modifier et supprimer une annonce, certaines de ses fonctionnalités nécessiteront d'être connecté, etc",
+  title: "News In France",
+  description: "News In France est un site web d'actualité...",
 };
 
 export default function RootLayout({
@@ -15,12 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body
-        className="flex flex-col min-h-screen"
-      >
+      <body className="flex flex-col min-h-screen mx-16">
         <Header />
-        <main className="flex-grow">{children}</main>
-      <Footer />
+        <main className="flex-grow">
+          <Providers>{children}</Providers>
+        </main>
       </body>
     </html>
   );
