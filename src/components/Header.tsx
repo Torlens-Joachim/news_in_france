@@ -4,49 +4,88 @@ import React, { useEffect, useState } from "react";
 import { IoPersonSharp } from "react-icons/io5";
 import { Modal } from "antd";
 import { user } from "@/app/types/types";
+import {login} from "@/reducers/user";
+import { useDispatch } from "react-redux";
 
 const Header = () => {
   const [date, setDate] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false); // Pour s'assurer que le DOM est prêt
-  const [user, setUser] = useState<user>({
+  const [userRegister, setUserRegister] = useState<user>({
     username: "",
     password: "",
     confirmPassword: "",
   });
+  const [userLogin, setUserLogin] = useState<user>({
+    username: "",
+    password: "",
+  });
   const [message, setMessage] = useState<string>();
-  const [status, setStatus] = useState<boolean>(false);
+  const [isGood, setIsGood] = useState<boolean>(false);
+  const dispatch = useDispatch();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRegisterForm = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
 
     const { name, value } = e.target;
 
-    setUser((prevUser: user) => ({ ...prevUser, [name]: value }));
+    setUserRegister((prevUser: user) => ({ ...prevUser, [name]: value }));
   };
+
+  const handleChangeLoginForm = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+
+    const { name, value } = e.target;
+    setUserLogin((prevUser) => ({...prevUser, [name]: value}));
+  }
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      const response = await fetch("/api/user/signup", {
+      const response: Response = await fetch("/api/user/signup", {
         method: "POST",
         headers: { "Content-type": "application/json" },
-        body: JSON.stringify(user),
+        body: JSON.stringify(userRegister),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         setMessage(data.error || "Erreur inconnue.");
-        setStatus(false);
+        setIsGood(false);
         return;
       }
 
       // Succès
       setMessage(data.message);
-      setStatus(true);
+      setIsGood(true);
     } catch (error) {
       console.log("Erreur serveur", error);
+      setMessage("Une erreur s'est produite");
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    try {
+      e.preventDefault();
+
+      const response: Response = await fetch("/api/user/login", {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify(userLogin),
+      });
+      const data = await response.json();
+
+      if(!response.ok) {
+        setMessage("Une erreur s'est produite");
+        setIsGood(false);
+        return;
+      }
+
+      dispatch(login(userLogin));
+      
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -78,21 +117,21 @@ const Header = () => {
             type="text"
             placeholder="Pseudo"
             name="username"
-            onChange={handleChange}
+            onChange={handleChangeRegisterForm}
           />
           <input
             className="border rounded-sm px-1 py-1 outline-none w-full mb-2"
             type="password"
             placeholder="Mot de passe"
             name="password"
-            onChange={handleChange}
+            onChange={handleChangeRegisterForm}
           />
           <input
             className="border rounded-sm px-1 py-1 outline-none w-full mb-2"
             type="password"
             placeholder="Retaper le mot de passe"
             name="confirmPassword"
-            onChange={handleChange}
+            onChange={handleChangeRegisterForm}
           />
           <button
             type="submit"
@@ -104,9 +143,7 @@ const Header = () => {
         {message && (
           <p
             className={`text-center mt-2 ${
-              status
-                ? "text-green-700"
-                : "text-red-700"
+              isGood ? "text-green-700" : "text-red-700"
             }`}
           >
             {message}
@@ -114,21 +151,23 @@ const Header = () => {
         )}
       </div>
       <div className="w-[200px] border-2 p-4">
-        <form>
+        <form onSubmit={handleLogin}>
           <p className="mb-2 text-center font-semibold">Connexion</p>
           <input
+            onChange={handleChangeLoginForm}
             className="border rounded-sm px-1 py-1 outline-none w-full mb-4"
             type="text"
             placeholder="Pseudo"
             name="username"
           />
           <input
+            onChange={handleChangeLoginForm}
             className="border rounded-sm px-1 py-1 outline-none w-full"
             type="password"
             placeholder="Mot de passe"
             name="password"
           />
-          <button className="mt-3 bg-green-500 text-white py-1 rounded w-full cursor-pointer">
+          <button type="submit" className="mt-3 bg-green-500 text-white py-1 rounded w-full cursor-pointer">
             Me connecter
           </button>
         </form>
